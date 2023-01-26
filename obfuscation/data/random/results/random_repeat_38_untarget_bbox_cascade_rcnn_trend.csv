@@ -1,0 +1,5 @@
+num_iteration,attack_count,success_count,vanish_count,mislabel_count,mislabel_intended_count,sample_count,model_name,loss_target,attack_bbox,perturb_fun
+10,100,7,5,2,0,128,../mmdetection/configs/cascade_rcnn/cascade_rcnn_r50_fpn_1x_coco.py,untarget,ground_truth,perturb_inside
+50,100,7,4,3,0,128,../mmdetection/configs/cascade_rcnn/cascade_rcnn_r50_fpn_1x_coco.py,untarget,ground_truth,perturb_inside
+100,100,8,6,2,0,128,../mmdetection/configs/cascade_rcnn/cascade_rcnn_r50_fpn_1x_coco.py,untarget,ground_truth,perturb_inside
+200,100,8,6,2,0,128,../mmdetection/configs/cascade_rcnn/cascade_rcnn_r50_fpn_1x_coco.py,untarget,ground_truth,perturb_inside

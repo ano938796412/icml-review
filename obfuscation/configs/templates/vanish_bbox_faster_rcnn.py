@@ -1,0 +1,3 @@
+_base_ = ["./models/faster_rcnn.py", "./dataset/coco.py", "./runtime/vanish_bbox.py"]
+
+backward_loss = "get_faster_rcnn_vanish_loss"

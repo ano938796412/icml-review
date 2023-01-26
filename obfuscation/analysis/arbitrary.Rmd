@@ -1,0 +1,211 @@
+---
+title: Deliberate Attack
+output: 
+  latex_fragment: default
+  pdf_document: 
+    keep_tex: true
+params:
+  simulation: "arbitrary"
+  fragment: true # pdf: change to `false` 
+---
+
+```{r setup, include=FALSE}
+# echo = FALSE needed to hide code when we set include = TRUE
+knitr::opts_chunk$set(
+  include = !params$fragment, echo = !params$fragment,
+  warning = !params$fragment, message = !params$fragment,
+  fig.align = "center", fig.pos = "tb",
+  root.dir = here::here(), fig.path = "rmd_imgs/"
+)
+```
+
+```{r packages}
+library(conflicted)
+
+library(kableExtra)
+library(knitr)
+library(broom.helpers)
+library(broom)
+library(dtplyr)
+library(furrr)
+library(arrow)
+library(glue)
+library(fs)
+library(tidyverse)
+
+conflict_prefer("filter", "dplyr")
+```
+
+```{r utils}
+source("./analysis/utils.R", local = knit_global())
+set_theme()
+```
+
+```{r citations}
+write_bib(.packages(), glue("./analysis/packages.bib"))
+sessionInfo()
+```
+
+```{r arbitrary_trend, cache = TRUE}
+data_dir <- path(glue("./data/{params$simulation}/results"))
+
+success_fnames <-
+  dir_ls(data_dir, glob = glue("*{params$simulation}*_trend.csv"))
+
+# every fname is a simulation
+success_raw_data <- get_data(success_fnames, read_csv) |>
+  glimpse()
+
+# expand success per simulation into 1 and 0s per row
+success_expanded_data <- success_raw_data |>
+  rename(
+    bbox_dist = boundary_distance,
+    bbox_len = arbitrary_bbox_length
+  ) |>
+  rowwise() |>
+  mutate(success = list(rep(0:1, times = c(attack_count - success_count, success_count)))) |>
+  unnest_longer(success) |>
+  glimpse()
+```
+
+```{r arbitrary_trend_count}
+# check whether attack count equals experiment settings
+stopifnot(all(success_raw_data$attack_count == 100))
+
+reps <- success_raw_data |>
+  count(model_name, loss_target, arbitrary_bbox_length, boundary_distance) |>
+  glimpse()
+
+stopifnot(unique(reps$n) == 2)
+```
+
+```{r arbitrary_trend_reg}
+# control both
+model <- partial(glm_model, predictor = "bbox_dist * bbox_len")
+data <- success_expanded_data
+
+reg_res <- get_tidied_reg(model, data, return_mod = TRUE)
+reg_est <- reg_res$tidied
+
+ext_sig(reg_est, "neg", "bbox_dist")
+ext_sig(reg_est, "pos", "bbox_len")
+ext_sig(reg_est, "both", "bbox_dist:bbox_len")
+```
+
+```{r arbitrary_trend_table, include=TRUE}
+dist_lab <- "Perturb-Target Distance"
+len_lab <- "Perturb Box Length"
+
+pred_name <- glue("{dist_lab} and {len_lab}")
+main_pt <- glue("longer {len_lab} or shorter {dist_lab} cause success rates to significantly increase for all model and attack combinations, except for {len_lab} in untargeted attack on Cascade R-CNN. The interaction terms, even when significant, are negligibly close to 0")
+
+print_statistics(reg_est, table_caption(pred_name, main_pt, "deliberate"))
+```
+
+```{r arbitrary_trend_reg_predicted}
+reg_mod <- reg_res$mod
+
+newdata <- expand_grid(
+  bbox_dist = linear_space(data$bbox_dist),
+  bbox_len = unique(data$bbox_len)
+) |>
+  glimpse()
+
+# type.predict = "link" by default
+# https://broom.tidymodels.org/reference/augment.glm.html
+# https://stackoverflow.com/questions/14423325/confidence-intervals-for-predictions-from-logistic-regression
+reg_pred <- reg_mod |>
+  summarize(augment(mod, newdata = newdata, se_fit = TRUE)) |>
+  mutate(success = plogis(.fitted), ul = plogis(.fitted + 1.96 * .se.fit), ll = plogis(.fitted - 1.96 * .se.fit)) |>
+  glimpse()
+```
+
+```{r arbitrary_trend_caption}
+arb_cap <- glue("{bold_tex('A deliberate attack obfuscates intent with increased success for all models and attacks')} We implement intent obfuscating attack by perturbing an arbitrary non-overlapping square region to disrupt a randomly selected target object at various lengths and distances. The binned summaries and regression trendlines graph success proportion against {str_to_lower(pred_name)} in the deliberate attack experiment. {err_cap} and every point aggregates success over 200 images. The deliberate attack multiplies success as compared to the randomized attack (Figure \\ref{{fig:success_trend_graph}}), especially at close {str_to_lower(dist_lab)} and large {str_to_lower(len_lab)}. Full details are given in Section \\ref{{sec:arb_att}}.")
+
+arb_cap
+```
+
+
+```{r arbitrary_trend_graph, include=TRUE, fig.cap=arb_cap}
+g <- success_expanded_data |> ggplot(aes(bbox_dist, success, color = bbox_len, group = bbox_len)) +
+  stat_summary(fun.data = "mean_cl_boot") +
+  facet_grid(cols = vars(model_name), rows = vars(loss_target))
+
+# https://github.com/tidyverse/ggplot2/blob/ef00be7e2016e1259b4aef7f7c85651df123beff/R/geom-smooth.r#L162
+g <- g + geom_ribbon(
+  data = reg_pred, aes(ymin = ll, ymax = ul),
+  fill = "grey60", linetype = 0, alpha = 0.4
+) +
+  geom_line(data = reg_pred)
+
+g + labs(x = dist_lab, y = "p(Success)") +
+  scale_x_continuous(breaks = unique(success_expanded_data$bbox_dist)) +
+  scale_color_viridis_c(name = len_lab, breaks = unique(success_expanded_data$bbox_len))
+```
+
+```{r rand_arb_compare}
+get_reg_vars <- function(data) {
+  data |> select(bbox_dist, bbox_size_perturb, model_name, loss_target, success, object)
+}
+
+# run random.Rmd 1st
+rand_dist_size <- readRDS("./analysis/rand_dist_size.RDS") |>
+  mutate(object = 1) |>
+  get_reg_vars() |>
+  glimpse()
+
+comb_dist_size <- success_expanded_data |>
+  mutate(object = 0, bbox_size_perturb = bbox_len^2) |>
+  get_reg_vars() |>
+  bind_rows(rand_dist_size) |>
+  mutate(
+    bbox_dist = bbox_dist / 1e2,
+    bbox_size_perturb = bbox_size_perturb / 1e5
+  ) |>
+  glimpse()
+
+stopifnot(nrow(comb_dist_size) == nrow(success_expanded_data) + 
+            nrow(rand_dist_size) && sum(is.na(comb_dist_size)) == 0)
+```
+
+```{r rand_arb_compare_reg}
+# control both
+model <- partial(glm_model, predictor = "object + bbox_dist * bbox_size_perturb")
+data <- comb_dist_size
+
+reg_est <- get_tidied_reg(model, data)
+
+ext_sig(reg_est, "both", "object")
+
+ext_sig(reg_est, "neg", "bbox_dist")
+ext_sig(reg_est, "pos", "bbox_size_perturb")
+ext_sig(reg_est, "both", "bbox_dist:bbox_size_perturb")
+```
+
+```{r rand_arb_compare_table, include=TRUE}
+dist_lab <- "Perturb-Target Distance (100 pixels)"
+size_lab <- "Perturb Box Size (100,000 squared pixels)"
+
+pred_name <- glue("object (versus non-object), with {dist_lab} and {size_lab} as covariates")
+main_pt <- "perturbing an object (in the randomized attack) rather than a non-object (in the deliberate attack) significantly decreases success rates for most model and attack combinations, after controlling for perturb sizes and perturb-target distances"
+
+tab_cap <- glue("We combined the data in the randomized and deliberate attack experiments to run a logistic model regressing success against {str_to_lower(pred_name)}. The ``object'' term codes object as 1 and non-object as 0. {str_to_sentence(main_pt)}. Table headers are explained in Appendix \\ref{{app:tab_hdr}}.")
+
+print_statistics(reg_est, tab_cap)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

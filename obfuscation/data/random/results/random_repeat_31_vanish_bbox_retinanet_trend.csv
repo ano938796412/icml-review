@@ -1,0 +1,5 @@
+num_iteration,attack_count,success_count,vanish_count,mislabel_count,mislabel_intended_count,sample_count,model_name,loss_target,attack_bbox,perturb_fun
+10,100,1,1,0,0,125,../mmdetection/configs/retinanet/retinanet_r50_fpn_1x_coco.py,vanish,ground_truth,perturb_inside
+50,100,6,6,0,0,125,../mmdetection/configs/retinanet/retinanet_r50_fpn_1x_coco.py,vanish,ground_truth,perturb_inside
+100,100,7,7,0,0,125,../mmdetection/configs/retinanet/retinanet_r50_fpn_1x_coco.py,vanish,ground_truth,perturb_inside
+200,100,8,8,0,0,125,../mmdetection/configs/retinanet/retinanet_r50_fpn_1x_coco.py,vanish,ground_truth,perturb_inside

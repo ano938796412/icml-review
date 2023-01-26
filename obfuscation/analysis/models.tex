@@ -1,0 +1,28 @@
+\begin{table*}
+
+\caption{\label{tab:models_table}Detection models and attack losses. Full details are given in Appendix \ref{app:mod_los}.}
+\centering
+\begin{threeparttable}
+\begin{tabular}[t]{llllll}
+\toprule
+\multicolumn{3}{c}{ } & \multicolumn{3}{c}{Attack Losses\textsuperscript{c}} \\
+\cmidrule(l{3pt}r{3pt}){4-6}
+\multicolumn{3}{c}{ } & \multicolumn{2}{c}{Targeted} & \multicolumn{1}{c}{ } \\
+\cmidrule(l{3pt}r{3pt}){4-5}
+Detectors & Stages\textsuperscript{a} & COCO mAP\textsuperscript{b} & Vanishing & Mislabeling & Untargeted\textsuperscript{d}\\
+\midrule
+\cellcolor{gray!6}{YOLOv3} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{33.7} & \cellcolor{gray!6}{Object} & \cellcolor{gray!6}{Class} & \cellcolor{gray!6}{Class, Box, Object}\\
+SSD & 1 & 29.5 & Class & Class & Class, Box\\
+\cellcolor{gray!6}{RetinaNet} & \cellcolor{gray!6}{1} & \cellcolor{gray!6}{36.5} & \cellcolor{gray!6}{Class} & \cellcolor{gray!6}{Class} & \cellcolor{gray!6}{Class, Box}\\
+\makecell[l]{Faster\\R-CNN} & 2 & 37.4 & \makecell[l]{RPN: Object;\\Det: Class} & Det: Class & \makecell[l]{RPN: Object, Box;\\Det: Class, Box}\\
+\cellcolor{gray!6}{\makecell[l]{Cascade\\R-CNN}} & \cellcolor{gray!6}{2} & \cellcolor{gray!6}{40.3} & \cellcolor{gray!6}{\makecell[l]{RPN 1: Object;\\RPNs 2, 3 + Det: Class}} & \cellcolor{gray!6}{\makecell[l]{RPNs 2, 3: Class;\\Det: Class}} & \cellcolor{gray!6}{\makecell[l]{RPN 1: Object, Box;\\RPNs 2, 3 + Det: Class, Box}}\\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\item[a] In general, 1-stage detectors are quicker whereas 2-stage detectors are more accurate, though the 1-stage RetinaNet aims to be both quick and accurate. In a 2-stage detector, the input image passes through a Region Proposal Network (RPN) stage and a detection (Det) stage.
+\item[b] COCO mean Average Precision (mAP) is the primary metric on the COCO challenge.
+\item[c] The training losses in detectors typically include the box regression loss (Box), the class loss on the 80 COCO labels and/or the background class (Class), and the objectness loss on categorizing an image region as background or object (Object).
+\item[d] Untargeted attack targets all training losses in a model, i.e. the backpropagation loss.
+\end{tablenotes}
+\end{threeparttable}
+\end{table*}

@@ -1,0 +1,5 @@
+../mmdetection/mmdet/core/post_processing/bbox_nms.py
+../mmdetection/mmdet/models/dense_heads/base_dense_head.py
+../mmdetection/configs/_base_/datasets/coco_detection.py
+../mmdetection/configs/ssd/ssd512_coco.py
+../mmdetection/configs/yolo/yolov3_d53_mstrain-608_273e_coco.py

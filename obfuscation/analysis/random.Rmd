@@ -1,0 +1,546 @@
+---
+title: Randomized Attack
+output: 
+  latex_fragment: default
+  pdf_document: 
+    keep_tex: true
+params:
+  simulation: "random"
+  fragment: true # pdf: change to `false` 
+---
+
+```{r setup, include=FALSE}
+# echo = FALSE needed to hide code when we set include = TRUE
+knitr::opts_chunk$set(
+  include = !params$fragment, echo = !params$fragment,
+  warning = !params$fragment, message = !params$fragment,
+  fig.align = "center", fig.pos = "tb",
+  root.dir = here::here(), fig.path = "rmd_imgs/"
+)
+```
+
+```{r packages}
+library(conflicted)
+
+library(kableExtra)
+library(knitr)
+library(broom.helpers)
+library(broom)
+library(dtplyr)
+library(furrr)
+library(arrow)
+library(glue)
+library(fs)
+library(tidyverse)
+
+conflict_prefer("filter", "dplyr")
+```
+
+```{r utils}
+source("./analysis/utils.R", local = knit_global())
+set_theme()
+```
+
+```{r citations}
+write_bib(.packages(), glue("./analysis/packages.bib"))
+sessionInfo()
+```
+
+```{r success_trend, cache = TRUE}
+data_dir <- path(glue("./data/{params$simulation}/results"))
+
+success_fnames <-
+  dir_ls(data_dir, glob = glue("*{params$simulation}*_trend.csv"))
+
+# every fname is a simulation
+success_raw_data <- get_data(success_fnames, read_csv) |>
+  glimpse()
+
+# expand success per simulation into 1 and 0s per row
+success_expanded_data <- success_raw_data |>
+  rowwise() |>
+  mutate(success = list(rep(0:1, times = c(attack_count - success_count, success_count)))) |>
+  unnest_longer(success) |>
+  glimpse()
+```
+
+```{r success_trend_count}
+# check whether attack count equals experiment settings
+stopifnot(all(success_raw_data$attack_count == 100))
+
+reps <- success_raw_data |>
+  count(model_name, loss_target, num_iteration) |>
+  glimpse()
+
+stopifnot(unique(reps$n) == 50)
+```
+
+```{r success_trend_caption}
+itr_lab <- "Attack Iterations"
+
+cap <- glue("{bold_tex('Intent obfuscating attack is feasible for all models and attacks')} We conduct a randomized experiment by resampling COCO images, and within those images randomly sampling correctly predicted target and perturb objects. Then we distort the perturb objects to disrupt the target objects varying the attack iterations. The binned summaries and regression trendlines graph success proportion against {str_to_lower(itr_lab)} in the randomized attack experiment. {err_cap} and every point aggregates success over 5,000 images. Targeted vanishing and mislabeling attacks obtain significantly greater success on the 1-stage YOLOv3 and SSD than the 2-stage Faster R-CNN and Cascade R-CNN detectors. However, the 1-stage RetinaNet is as resilient as the 2-stage detectors. Additionally, targeted attacks are significantly more successful than untargeted attacks on YOLOv3 and SSD, but the pattern does not exist for RetinaNet, Faster R-CNN, and Cascade R-CNN. Within targeted attacks, vanishing achieves significantly greater success than mislabeling attack on all models except YOLOv3. Moreover, success rates significantly increase with larger attack iterations. Significance is determined at $\\alpha < 0.05$ using a Wald z-test on the logistic estimates. Full details are given in Section \\ref{{sec:rand_att}}.")
+
+cap
+```
+
+```{r success_trend_graph, include = TRUE, fig.cap=cap}
+# use log(num_iteration)
+g <- success_expanded_data |>
+  ggplot(aes(num_iteration, success, color = loss_target, linetype = loss_target)) +
+  # use stat_summary rather than stat_summary_bin
+  # since num_iteration is set experimentally
+  # mean_cl_boot gives 95% bootstrapped CI at 1000 samples
+  # https://rdrr.io/cran/Hmisc/man/smean.sd.html
+  stat_summary(fun.data = "mean_cl_boot") +
+  binomial_smooth(formula = y ~ log(x)) +
+  facet_grid(cols = vars(model_name))
+
+g +
+  labs(x = itr_lab, y = "p(Success)", color = "Attack", linetype = "Attack") +
+  scale_x_continuous(breaks = unique(success_raw_data$num_iteration))
+```
+
+```{r success_trend_breakdown}
+success_breakdown_data <- success_raw_data |>
+  rowwise() |>
+  mutate(
+    vanish = list(rep(0:1, times = c(success_count - vanish_count, vanish_count))),
+    mislabel = list(rep(0:1, times = c(success_count - mislabel_count, mislabel_count)))
+  ) |>
+  unnest_longer(c(vanish, mislabel)) |>
+  pivot_longer(c(vanish, mislabel)) |>
+  mutate(name = factor(recode(name, vanish = "Vanished", mislabel = "Mislabeled"), ordered = TRUE)) |>
+  glimpse()
+```
+
+```{r success_trend_breakdown_caption}
+cap <- glue("{bold_tex('Vanishing and mislabeling attacks mostly cause target objects to vanish and get mislabeled')} The graph breaks down the success rationale within the success cases (Figure \\ref{{fig:success_trend_graph}}). Though we did not restrict success to the intended attack mode (e.g. a vanishing attack which mislabels the target object still count as a success case), the target objects do vanish and get mislabeled in most success cases respectively in the vanishing and mislabeling attacks. The binned summaries and regression trendlines break down the success cases into proportion vanished and mislabeled---separated by attack---against {str_to_lower(itr_lab)} in the randomized attack experiment. {err_cap}")
+
+cap
+```
+
+```{r success_trend_breakdown_graph, include = TRUE, fig.cap=cap}
+legend_lab <- "Success Rationale"
+
+g <- success_breakdown_data |>
+  ggplot(aes(num_iteration, value, color = name, linetype = name)) +
+  # use stat_summary rather than stat_summary_bin
+  # since num_iteration is set experimentally
+  # mean_cl_boot gives 95% bootstrapped CI at 1000 samples
+  # https://rdrr.io/cran/Hmisc/man/smean.sd.html
+  stat_summary(fun.data = "mean_cl_boot") +
+  binomial_smooth(formula = y ~ log(x)) +
+  facet_grid(cols = vars(model_name), rows = vars(loss_target))
+
+g +
+  labs(x = itr_lab, y = "p(Success Rationale)", color = legend_lab, linetype = legend_lab) +
+  scale_x_continuous(breaks = unique(success_raw_data$num_iteration)) +
+  coord_cartesian(ylim = c(0, 1))
+```
+
+```{r success_trend_mislabel_intended}
+mislabel_intended_data <- success_raw_data |>
+  filter(loss_target == "Mislabeling") |>
+  rowwise() |>
+  mutate(
+    mislabel_intended = list(rep(0:1, times = c(mislabel_count - mislabel_intended_count, mislabel_intended_count)))
+  ) |>
+  unnest_longer(mislabel_intended) |>
+  glimpse()
+```
+
+```{r success_trend_mislabel_intended_caption}
+cap <- glue("{bold_tex('Mislabeling attacks usually mislabel the target objects to the intended class')} The binned summaries and regression trendlines give us the proportion mislabeled to the intended class within the success cases in the mislabeling attack. The proportion is plotted against {str_to_lower(itr_lab)} in the randomized attack experiment. {err_cap} For Cascade R-CNN, the logistic model did not converge because the mislabel intended proportion is constant at 100\\%.")
+
+cap
+```
+
+```{r success_trend_mislabel_intended_graph, include = TRUE, fig.cap=cap}
+g <- mislabel_intended_data |>
+  ggplot(aes(num_iteration, mislabel_intended)) +
+  # use stat_summary rather than stat_summary_bin
+  # since num_iteration is set experimentally
+  # mean_cl_boot gives 95% bootstrapped CI at 1000 samples
+  # https://rdrr.io/cran/Hmisc/man/smean.sd.html
+  stat_summary(fun.data = "mean_cl_boot") +
+  binomial_smooth(formula = y ~ log(x)) +
+  facet_grid(cols = vars(model_name), rows = vars(loss_target))
+
+g +
+  labs(x = itr_lab, y = "p(mislabeled to intended class within\nsuccess cases in mislabeling attack)") +
+  scale_x_continuous(breaks = unique(success_raw_data$num_iteration)) +
+  coord_cartesian(ylim = c(0, 1))
+```
+
+```{r cascade_non_converge}
+mislabel_intended_data |> group_by(model_name, num_iteration) |> summarize(mean(mislabel_intended))
+```
+
+```{r model_stage_reg}
+# compare models against YOLO
+# grouped by attack
+data <- success_expanded_data |>
+  # restrict to max iteration
+  filter(num_iteration == max(num_iteration)) |>
+  # avoid ordered regression
+  mutate(
+    model_name = factor(model_name, ordered = FALSE),
+    loss_target = factor(loss_target, ordered = FALSE)
+  ) |>
+  glimpse()
+
+model <- partial(glm_model, predictor = "model_name")
+
+reg_est <- get_tidied_reg(
+  model, data, loss_target
+)
+
+ext_sig(reg_est)
+```
+
+```{r model_stage_table, include = TRUE}
+cap <- table_caption("detection models, split by attack,", "All attacks, especially vanishing and mislabeling, obtain higher success on 1-stage (YOLOv3, SSD) than 2-stage (Faster R-CNN, Cascade R-CNN) detectors. However, the 1-stage RetinaNet is as resilient as 2-stage detectors")
+
+print_statistics(reg_est, cap)
+```
+
+```{r target_untarget_vanish_mislabel_reg}
+# compare attacks against vanishing
+# grouped by models
+model <- partial(glm_model, predictor = "loss_target")
+
+reg_est <- get_tidied_reg(
+  model, data, model_name
+)
+
+ext_sig(reg_est)
+```
+
+```{r target_untarget_vanish_mislabel_table, include = TRUE}
+cap <- table_caption("attacks, split by detection models", "Targeted attacks achieve higher success than untargeted attack on YOLOv3 and SSD. Within targeted attacks, vanishing attacks achieve higher success than mislabeling attack, except on YOLOv3")
+
+print_statistics(reg_est, cap)
+```
+
+```{r num_iteration_reg}
+# num_iteration
+reg_est <- get_tidied_reg(
+  partial(glm_model, predictor = "log(num_iteration)"),
+  success_expanded_data,
+)
+
+ext_sig(reg_est, "pos")
+```
+
+```{r num_iteration_table, include = TRUE}
+cap <- table_caption(glue("log({itr_lab})"), "Success rates increase with attack iterations for all models and attacks")
+
+print_statistics(reg_est, cap)
+```
+
+```{r success_predictors, cache = TRUE, cache.lazy = FALSE}
+# cache.lazy = FALSE needed to avoid errors with large bbox .parquets
+attack_bbox <- "ground_truth"
+
+bbox_fnames <-
+  dir_ls(data_dir, glob = glue("*{params$simulation}*_bboxes.parquet"))
+
+# Every bbox whether ground-truth, predicted or attacked is a row and the columns are the sample and bbox statistics
+bbox_raw_data <- get_data(bbox_fnames, read_parquet) |>
+  glimpse() |>
+  lazy_dt()
+```
+
+```{r success_predictors_seeded}
+# check whether target and perturb bboxes and
+# mislabel classes are seeded across iterations
+cols_start_equal(bbox_raw_data, c(
+  "bbox_target", "bbox_perturb",
+  "sample_mislabel_class", "sample_mislabel_proba"
+))
+```
+
+```{r target_conf}
+# bbox confidence always based on predicted bbox
+bbox_conf_data <- bbox_raw_data |>
+  filter(bbox_type == "predictions") |>
+  wrangle_success() |>
+  glimpse()
+
+bbox_conf_data |>
+  graph_attr(bbox_conf, "Confidence")
+```
+
+```{r target_conf_graph, include=TRUE, fig.cap=graph_caption(pred_name, main_pt)}
+# restrict to target
+pred_name <- "target confidence"
+main_pt <- glue("Lower {pred_name} significantly increases success rates for all models and attacks")
+
+bbox_conf_graph <- bbox_conf_data |> filter(target_or_perturb == "Target")
+bbox_conf_graph |>
+  graph_attr(bbox_conf, pred_name)
+```
+
+```{r target_conf_reg}
+model <- partial(glm_model, predictor = "bbox_conf")
+data <- bbox_conf_graph
+
+reg_est <- get_tidied_reg(model, data)
+ext_sig(reg_est, "neg")
+```
+
+```{r target_conf_table, include=TRUE}
+print_statistics(reg_est, table_caption(pred_name, main_pt))
+```
+
+```{r perturb_error}
+perturb_error_data <- bbox_conf_data |>
+  filter(target_or_perturb == "Perturb") |>
+  group_by(model_name, loss_target) |>
+  summarise(perturb_error = 1 - mean(success)) |>
+  glimpse()
+```
+
+```{r perturb_bbox}
+# bbox sizes typically based on ground-truth attacked bbox
+# not applicable to "arbitrary" attack since the bbox sizes are set experimentally
+# regression with distances later
+bbox_size_data <- bbox_raw_data |>
+  filter(bbox_type == attack_bbox) |>
+  wrangle_success() |>
+  # hoist not implemented in dtplyr
+  as_tibble() |>
+  # bbox_xywhn == normalized x1, y1, w, h
+  hoist(bbox_xywhn, bbox_xn = 1, bbox_yn = 2, bbox_wn = 3, bbox_hn = 4) |>
+  mutate(
+    bbox_w = bbox_wn * sample_width,
+    bbox_h = bbox_hn * sample_height,
+    bbox_size = bbox_w * bbox_h,
+  ) |>
+  glimpse()
+
+bbox_size_data |>
+  graph_attr(bbox_size, "Sizes")
+```
+
+```{r object_dist}
+# bbox distances typically based on ground-truth attacked bbox as in sizes
+# not applicable to "arbitrary" attack since the bbox distances are set experimentally
+# regression with sizes later
+bbox_dist_data <- bbox_size_data |>
+  mutate(
+    bbox_x1 = bbox_xn * sample_width,
+    bbox_y1 = bbox_yn * sample_height,
+    bbox_x2 = bbox_x1 + bbox_w,
+    bbox_y2 = bbox_y1 + bbox_h,
+    target_or_perturb_lower = str_to_lower(target_or_perturb)
+  ) |>
+  # mainly "group" by sample_id and attack iteration
+  # with target bbox on one row and perturb on another
+  # success, model_name, loss_target are sample attributes
+  # duplicated across bboxes
+  pivot_wider(
+    id_cols = c(fname, sample_id, attack_itr, success, model_name, loss_target), names_from = target_or_perturb_lower,
+    values_from = c(bbox_x1, bbox_y1, bbox_x2, bbox_y2, bbox_size)
+  ) |>
+  rowwise() |>
+  mutate(bbox_dist = get_min_distance(
+    bbox_x1_perturb, bbox_y1_perturb, bbox_x2_perturb, bbox_y2_perturb,
+    bbox_x1_target, bbox_y1_target, bbox_x2_target, bbox_y2_target
+  )) |>
+  ungroup() |>
+  glimpse()
+
+bbox_dist_data |>
+  graph_attr(bbox_dist, "Distances")
+```
+
+```{r save_to_compare_with_arbitrary}
+saveRDS(bbox_dist_data, "./analysis/rand_dist_size.RDS")
+```
+
+```{r perturb_bbox_and_object_dist_graph, include=TRUE, fig.cap=cap}
+check_graph_data(bbox_dist_data, c(bbox_dist, bbox_size_perturb))
+
+dist_lab <- "Perturb-Target Distance (100 pixels)"
+size_lab <- "Perturb Box Size (100,000 squared pixels)"
+
+pred_name <- glue("{dist_lab} and {size_lab}")
+main_pt <- "Larger perturb objects significantly increase success rates for all models and attacks, except for mislabeling attack on Faster R-CNN, after controlling for perturb-target distances; Shorter perturb-target distances significantly increase success rates for all models and attacks, after controlling for perturb object sizes"
+
+cap <- glue(
+  "{bold_tex(main_pt)} The binned summaries",
+  " graph success proportion against {str_to_lower(pred_name)} in the",
+  " randomized attack experiment."
+)
+
+bbox_dist_data <- bbox_dist_data |> mutate(
+  bbox_size_perturb = bbox_size_perturb / 1e5,
+  bbox_dist = bbox_dist / 1e2
+)
+
+graph_dist_size <- function(g) {
+  g + facet_grid(rows = vars(loss_target), cols = vars(model_name)) +
+    labs(x = dist_lab, y = size_lab) +
+    scale_fill_viridis_c(name = "p(Success)", breaks = c(0, .5, 1), limits = c(0, 1))
+}
+
+g <- bbox_dist_data |> ggplot(aes(bbox_dist, bbox_size_perturb, z = success)) +
+  stat_summary_2d(fun = "mean", bins = 5)
+
+graph_dist_size(g)
+```
+
+```{r perturb_bbox_and_object_dist_reg}
+# control both
+model <- partial(glm_model, predictor = "bbox_dist * bbox_size_perturb")
+data <- bbox_dist_data
+
+reg_res <- get_tidied_reg(model, data, return_mod = TRUE) |> glimpse()
+reg_est <- reg_res$tidied
+
+ext_sig(reg_est, "neg", "bbox_dist")
+ext_sig(reg_est, "pos", "bbox_size_perturb")
+ext_sig(reg_est, "both", "bbox_dist:bbox_size_perturb")
+```
+
+```{r perturb_bbox_and_object_dist_table, include=TRUE}
+print_statistics(reg_est, table_caption(pred_name, main_pt))
+```
+
+```{r perturb_bbox_and_object_dist_reg_predicted}
+reg_mod <- reg_res$mod
+
+newdata <- expand_grid(
+  bbox_dist = linear_space(data$bbox_dist),
+  bbox_size_perturb = linear_space(data$bbox_size_perturb)
+) |>
+  glimpse()
+
+reg_pred <- reg_mod |>
+  summarize(augment(mod, newdata = newdata, type.predict = "response")) |>
+  rename(success = .fitted) |>
+  glimpse()
+
+g <- reg_pred |> ggplot(aes(bbox_dist, bbox_size_perturb, fill = success)) +
+  geom_raster(interpolate = TRUE)
+
+graph_dist_size(g)
+```
+
+
+```{r target_success}
+# get success rate on ground truth sampled images
+gt_success_data <- bbox_raw_data |>
+  filter(bbox_type == "ground_truth") |>
+  # loss_target is not relevant
+  count(model_name, bbox_class, bbox_res_eval) |>
+  # get success probability
+  # https://stackoverflow.com/a/37448040/19655086
+  group_by(model_name, bbox_class) |>
+  summarise(gt_p_success = n[bbox_res_eval == "tp"] / sum(n)) |>
+  glimpse()
+
+# by model_name, bbox_class
+gt_success_data <- bbox_conf_data |>
+  left_join(gt_success_data) |>
+  glimpse()
+
+gt_success_data |>
+  graph_attr(gt_p_success, "COCO Accuracy")
+```
+
+```{r target_success_graph, include=TRUE, fig.cap=cap}
+pred_name <- "mean COCO accuracy for the target class"
+main_pt <- "the results are mixed after controlling for target class confidence"
+
+cap <- graph_caption(pred_name, glue("Although higher {pred_name} seem to decrease success rates, {main_pt} (Table \\ref{{tab:target_success_table}})"))
+
+gt_success_graph <- gt_success_data |> filter(target_or_perturb == "Target")
+gt_success_graph |>
+  graph_attr(gt_p_success, pred_name)
+```
+
+```{r target_success_reg}
+model <- partial(glm_model, predictor = "gt_p_success * bbox_conf")
+data <- gt_success_graph
+
+reg_est <- get_tidied_reg(model, data)
+
+# there are both significantly positive and negative gt_p_success,
+# and the interaction term is relatively large
+ext_sig(reg_est, "neg", "gt_p_success")
+ext_sig(reg_est, "pos", "gt_p_success")
+ext_sig(reg_est, "both", "gt_p_success:bbox_conf")
+```
+
+```{r target_success_table, include=TRUE}
+print_statistics(reg_est, table_caption(
+  glue("{pred_name}, with target confidence as covariate,"),
+  glue("{main_pt} and the relatively large interaction terms make interpretation challenging")
+))
+```
+
+```{r mislabel_conf}
+# restrict to mislabeling and largest attack_itr
+bbox_proba_graph <- bbox_conf_data |>
+  filter(loss_target == "Mislabeling" & target_or_perturb == "Target") |>
+  rename(sample_mislabel_proba = glue("sample_mislabel_proba_{max(bbox_conf_data$attack_itr)}"))
+
+# check is not logit
+stopifnot(max(bbox_proba_graph$sample_mislabel_proba) <= 1 && min(bbox_proba_graph$sample_mislabel_proba) >= 0)
+```
+
+```{r mislabel_conf_graph, include=TRUE, fig.cap=cap}
+pred_name <- "intended class probability"
+att_name <- "for the mislabeling attack"
+
+main_pt <- glue("does not predict success rates after controlling for target class confidence, except for RetinaNet")
+cap <- graph_caption(pred_name, glue("Although {pred_name} seem to increase success rates {att_name}, it {main_pt} (Table \\ref{{tab:mislabel_conf_table}})"))
+
+g <- bbox_proba_graph |>
+  graph_attr(sample_mislabel_proba, glue("{pred_name} {att_name}"), scale_x_log10())
+```
+
+```{r mislabel_conf_reg}
+model <- partial(glm_model, predictor = "log(sample_mislabel_proba) * bbox_conf")
+data <- bbox_proba_graph
+
+reg_est <- get_tidied_reg(model, data)
+ext_sig(reg_est, "pos", "log(sample_mislabel_proba)")
+ext_sig(reg_est, "both", "log(sample_mislabel_proba):bbox_conf")
+```
+
+```{r mislabel_conf_table, include=TRUE}
+print_statistics(reg_est, table_caption(glue("log({pred_name}) {att_name}, with predicted class's confidence as covariate,"), glue("{pred_name} {main_pt}")))
+```
+
+```{r untarget_iou}
+# bbox iou always based on predictions bbox like confidence
+bbox_conf_data |>
+  graph_attr(bbox_iou_predictions_eval, " IOU ")
+```
+
+```{r untarget_iou_graph, include=TRUE, fig.cap=cap}
+# restrict to target bbox and untargeted attack only
+pred_name <- "target iou for the untargeted attack"
+main_pt <- glue("{pred_name} increases success rates on all models")
+
+cap <- graph_caption(pred_name, main_pt)
+
+bbox_iou_graph <- bbox_conf_data |> filter(target_or_perturb == "Target" & loss_target == "Untargeted")
+bbox_iou_graph |>
+  graph_attr(bbox_iou_predictions_eval, pred_name)
+```
+
+```{r untarget_iou_reg}
+model <- partial(glm_model, predictor = "bbox_iou_predictions_eval")
+data <- bbox_iou_graph
+
+reg_est <- get_tidied_reg(model, data)
+ext_sig(reg_est, "neg")
+```
+
+```{r untarget_iou_table, include=TRUE}
+print_statistics(reg_est, table_caption(pred_name, main_pt))
+```

@@ -1,0 +1,5 @@
+num_iteration,attack_count,success_count,vanish_count,mislabel_count,mislabel_intended_count,sample_count,model_name,loss_target,attack_bbox,perturb_fun
+10,100,5,4,1,1,132,../mmdetection/configs/ssd/ssd512_coco.py,mislabel,ground_truth,perturb_inside
+50,100,23,11,12,12,132,../mmdetection/configs/ssd/ssd512_coco.py,mislabel,ground_truth,perturb_inside
+100,100,26,8,18,18,132,../mmdetection/configs/ssd/ssd512_coco.py,mislabel,ground_truth,perturb_inside
+200,100,29,10,19,19,132,../mmdetection/configs/ssd/ssd512_coco.py,mislabel,ground_truth,perturb_inside

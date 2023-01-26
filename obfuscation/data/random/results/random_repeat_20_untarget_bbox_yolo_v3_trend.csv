@@ -1,0 +1,5 @@
+num_iteration,attack_count,success_count,vanish_count,mislabel_count,mislabel_intended_count,sample_count,model_name,loss_target,attack_bbox,perturb_fun
+10,100,6,6,0,0,130,../mmdetection/configs/yolo/yolov3_d53_mstrain-608_273e_coco.py,untarget,ground_truth,perturb_inside
+50,100,8,6,2,0,130,../mmdetection/configs/yolo/yolov3_d53_mstrain-608_273e_coco.py,untarget,ground_truth,perturb_inside
+100,100,10,8,2,0,130,../mmdetection/configs/yolo/yolov3_d53_mstrain-608_273e_coco.py,untarget,ground_truth,perturb_inside
+200,100,9,7,2,0,130,../mmdetection/configs/yolo/yolov3_d53_mstrain-608_273e_coco.py,untarget,ground_truth,perturb_inside

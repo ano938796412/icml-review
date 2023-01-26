@@ -1,0 +1,24 @@
+\begin{table}[!h]
+
+\caption{\label{tab:results_table}Hypothesis testing in the randomized attack (Sections \ref{sec:rand_hp} and \ref{sec:rand_res})}
+\centering
+\begin{tabular}[t]{>{\raggedright\arraybackslash}p{1.25in}>{\raggedright\arraybackslash}p{1.5in}}
+\toprule
+Hypotheses (higher success for) & Accepted (across attacks and models)\textsuperscript{a}\\
+\midrule
+\cellcolor{gray!6}{1-stage $>$ 2-stage models (YOLOv3, SSD, RetinaNet $>$ Faster R-CNN, Cascade R-CNN)} & \cellcolor{gray!6}{All except RetinaNet (YOLOv3, SSD $>$ RetinaNet, Faster R-CNN, Cascade R-CNN)}\\
+Targeted $>$ Untargeted attack & Only YOLOv3, SSD\\
+\cellcolor{gray!6}{Vanishing $>$ Mislabeling attack} & \cellcolor{gray!6}{All except YOLOv3}\\
+Larger attack iterations & All\\
+\cellcolor{gray!6}{Less confident targets} & \cellcolor{gray!6}{All}\\
+\addlinespace
+Larger perturb boxes & All except mislabeling attack on Faster R-CNN\\
+\cellcolor{gray!6}{Shorter perturb-target distance} & \cellcolor{gray!6}{All}\\
+Less accurate target COCO class & Mixed\\
+\cellcolor{gray!6}{More probable intended class (mislabeling attack only)} & \cellcolor{gray!6}{None except RetinaNet}\\
+Lower target IOU\textsuperscript{b} (untargeted attack only) & All\\
+\bottomrule
+\multicolumn{2}{l}{\rule{0pt}{1em}\textsuperscript{a} $p < .05$ for Wald z-test on logistic estimate}\\
+\multicolumn{2}{l}{\rule{0pt}{1em}\textsuperscript{b} intersection-over-union}\\
+\end{tabular}
+\end{table}

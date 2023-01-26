@@ -1,0 +1,255 @@
+\begingroup\fontsize{9}{11}\selectfont
+
+\begin{longtable}[t]{llllrrrrrr}
+\caption{\label{tab:arbitrary_trend_table}We run a logistic model regressing success against perturb-target distance and perturb box length in the deliberate attack experiment. Longer perturb box length or shorter perturb-target distance cause success rates to significantly increase for all model and attack combinations, except for perturb box length in untargeted attack on Cascade R-CNN. The interaction terms, even when significant, are negligibly close to 0. Table headers are explained in Appendix \ref{app:tab_hdr}.}\\
+\toprule
+\multicolumn{2}{c}{Group} & \multicolumn{8}{c}{Regression} \\
+\cmidrule(l{3pt}r{3pt}){1-2} \cmidrule(l{3pt}r{3pt}){3-10}
+ & Attack & term & sig & estimate & std.error & statistic & p.value & conf.low & conf.high\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{YOLOv3}}\\
+\hspace{1em} & Vanishing & distance & * & -0.015 & 0.002 & -7.681 & 0.000 & -0.018 & -0.011\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.030 & 0.002 & 19.637 & 0.000 & 0.027 & 0.033\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length & * & 0.000 & 0.000 & -6.081 & 0.000 & 0.000 & 0.000\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Mislabeling & distance & * & -0.015 & 0.002 & -8.540 & 0.000 & -0.018 & -0.011\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.019 & 0.001 & 16.603 & 0.000 & 0.016 & 0.021\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length &  & 0.000 & 0.000 & -1.733 & 0.083 & 0.000 & 0.000\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Untargeted & distance & * & -0.021 & 0.003 & -7.440 & 0.000 & -0.026 & -0.015\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.007 & 0.001 & 6.528 & 0.000 & 0.005 & 0.009\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length &  & 0.000 & 0.000 & 1.467 & 0.142 & 0.000 & 0.000\\
+\cmidrule{1-10}\pagebreak[0]
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{SSD}}\\
+\hspace{1em} & Vanishing & distance & * & -0.015 & 0.002 & -7.055 & 0.000 & -0.019 & -0.011\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.024 & 0.001 & 17.747 & 0.000 & 0.021 & 0.027\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length & * & 0.000 & 0.000 & -4.823 & 0.000 & 0.000 & 0.000\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Mislabeling & distance & * & -0.018 & 0.002 & -7.553 & 0.000 & -0.023 & -0.014\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.020 & 0.001 & 15.991 & 0.000 & 0.017 & 0.022\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length & * & 0.000 & 0.000 & -2.458 & 0.014 & 0.000 & 0.000\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Untargeted & distance & * & -0.018 & 0.002 & -7.742 & 0.000 & -0.023 & -0.014\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.013 & 0.001 & 11.665 & 0.000 & 0.011 & 0.015\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length &  & 0.000 & 0.000 & -0.873 & 0.383 & 0.000 & 0.000\\
+\cmidrule{1-10}\pagebreak[0]
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{RetinaNet}}\\
+\hspace{1em} & Vanishing & distance & * & -0.045 & 0.006 & -7.187 & 0.000 & -0.058 & -0.033\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.016 & 0.001 & 10.614 & 0.000 & 0.013 & 0.019\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length & * & 0.000 & 0.000 & -2.147 & 0.032 & 0.000 & 0.000\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Mislabeling & distance & * & -0.031 & 0.007 & -4.240 & 0.000 & -0.047 & -0.018\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.008 & 0.002 & 4.541 & 0.000 & 0.005 & 0.012\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length &  & 0.000 & 0.000 & -1.021 & 0.307 & 0.000 & 0.000\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Untargeted & distance & * & -0.038 & 0.005 & -7.446 & 0.000 & -0.049 & -0.029\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.005 & 0.001 & 3.969 & 0.000 & 0.003 & 0.008\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length & * & 0.000 & 0.000 & 6.925 & 0.000 & 0.000 & 0.000\\
+\cmidrule{1-10}\pagebreak[0]
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{Faster R-CNN}}\\
+\hspace{1em} & Vanishing & distance & * & -0.061 & 0.010 & -6.407 & 0.000 & -0.081 & -0.044\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.011 & 0.001 & 7.127 & 0.000 & 0.008 & 0.014\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length &  & 0.000 & 0.000 & -0.490 & 0.624 & 0.000 & 0.000\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Mislabeling & distance & * & -0.054 & 0.012 & -4.664 & 0.000 & -0.080 & -0.034\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.007 & 0.002 & 3.706 & 0.000 & 0.003 & 0.010\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length &  & 0.000 & 0.000 & -0.717 & 0.473 & 0.000 & 0.000\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Untargeted & distance & * & -0.044 & 0.006 & -8.012 & 0.000 & -0.056 & -0.034\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.005 & 0.001 & 3.676 & 0.000 & 0.002 & 0.007\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length & * & 0.000 & 0.000 & 6.889 & 0.000 & 0.000 & 0.000\\
+\cmidrule{1-10}\pagebreak[0]
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{Cascade R-CNN}}\\
+\hspace{1em} & Vanishing & distance & * & -0.063 & 0.010 & -6.579 & 0.000 & -0.083 & -0.046\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.015 & 0.002 & 9.395 & 0.000 & 0.012 & 0.018\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length &  & 0.000 & 0.000 & -1.003 & 0.316 & 0.000 & 0.000\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Mislabeling & distance & * & -0.062 & 0.012 & -5.240 & 0.000 & -0.088 & -0.041\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length & * & 0.010 & 0.002 & 5.795 & 0.000 & 0.006 & 0.013\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length &  & 0.000 & 0.000 & -0.122 & 0.903 & 0.000 & 0.000\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Untargeted & distance & * & -0.061 & 0.008 & -7.544 & 0.000 & -0.079 & -0.047\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & length &  & 0.002 & 0.001 & 1.498 & 0.134 & -0.001 & 0.005\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * length & * & 0.000 & 0.000 & 6.198 & 0.000 & 0.000 & 0.000\\
+\bottomrule
+\end{longtable}
+\endgroup{}
+
+
+
+\begingroup\fontsize{9}{11}\selectfont
+
+\begin{longtable}[t]{llllrrrrrr}
+\caption{\label{tab:rand_arb_compare_table}We combined the data in the randomized and deliberate attack experiments to run a logistic model regressing success against object (versus non-object), with perturb-target distance (100 pixels) and perturb box size (100,000 squared pixels) as covariates. The ``object'' term codes object as 1 and non-object as 0. Perturbing an object (in the randomized attack) rather than a non-object (in the deliberate attack) significantly decreases success rates for most model and attack combinations, after controlling for perturb sizes and perturb-target distances. Table headers are explained in Appendix \ref{app:tab_hdr}.}\\
+\toprule
+\multicolumn{2}{c}{Group} & \multicolumn{8}{c}{Regression} \\
+\cmidrule(l{3pt}r{3pt}){1-2} \cmidrule(l{3pt}r{3pt}){3-10}
+ & Attack & term & sig & estimate & std.error & statistic & p.value & conf.low & conf.high\\
+\midrule
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{YOLOv3}}\\
+\hspace{1em} & Vanishing & object & * & -0.317 & 0.063 & -5.031 & 0.000 & -0.440 & -0.193\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -1.711 & 0.076 & -22.383 & 0.000 & -1.863 & -1.563\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 8.585 & 0.367 & 23.423 & 0.000 & 7.878 & 9.315\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size & * & -3.258 & 0.310 & -10.498 & 0.000 & -3.872 & -2.655\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Mislabeling & object &  & -0.026 & 0.059 & -0.440 & 0.660 & -0.141 & 0.089\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -1.515 & 0.066 & -22.796 & 0.000 & -1.647 & -1.386\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 4.538 & 0.253 & 17.940 & 0.000 & 4.050 & 5.041\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size & * & -0.908 & 0.231 & -3.938 & 0.000 & -1.365 & -0.462\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Untargeted & object & * & -0.201 & 0.079 & -2.544 & 0.011 & -0.357 & -0.046\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -1.970 & 0.114 & -17.351 & 0.000 & -2.197 & -1.752\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 1.593 & 0.170 & 9.364 & 0.000 & 1.265 & 1.932\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size &  & 0.356 & 0.250 & 1.423 & 0.155 & -0.149 & 0.837\\
+\cmidrule{1-10}\pagebreak[0]
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{SSD}}\\
+\hspace{1em} & Vanishing & object &  & 0.096 & 0.063 & 1.532 & 0.125 & -0.027 & 0.219\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -1.924 & 0.084 & -22.955 & 0.000 & -2.090 & -1.762\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 5.883 & 0.296 & 19.896 & 0.000 & 5.313 & 6.472\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size & * & -2.263 & 0.289 & -7.826 & 0.000 & -2.844 & -1.707\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Mislabeling & object &  & -0.039 & 0.064 & -0.609 & 0.542 & -0.166 & 0.087\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -1.953 & 0.091 & -21.407 & 0.000 & -2.134 & -1.776\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 4.228 & 0.249 & 16.958 & 0.000 & 3.749 & 4.726\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size & * & -1.509 & 0.282 & -5.356 & 0.000 & -2.077 & -0.971\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Untargeted & object & * & 0.176 & 0.066 & 2.661 & 0.008 & 0.047 & 0.306\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -2.060 & 0.093 & -22.041 & 0.000 & -2.246 & -1.879\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 1.958 & 0.187 & 10.482 & 0.000 & 1.599 & 2.331\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size &  & -0.227 & 0.244 & -0.929 & 0.353 & -0.719 & 0.240\\
+\cmidrule{1-10}\pagebreak[0]
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{RetinaNet}}\\
+\hspace{1em} & Vanishing & object & * & -0.551 & 0.093 & -5.947 & 0.000 & -0.734 & -0.370\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -4.949 & 0.261 & -18.960 & 0.000 & -5.472 & -4.448\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 2.686 & 0.251 & 10.722 & 0.000 & 2.208 & 3.190\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size &  & -0.881 & 0.569 & -1.548 & 0.122 & -2.035 & 0.197\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Mislabeling & object &  & -0.245 & 0.136 & -1.799 & 0.072 & -0.513 & 0.022\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -3.968 & 0.357 & -11.109 & 0.000 & -4.697 & -3.297\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 1.163 & 0.231 & 5.032 & 0.000 & 0.712 & 1.621\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size &  & 0.117 & 0.696 & 0.168 & 0.867 & -1.323 & 1.403\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Untargeted & object & * & -0.448 & 0.091 & -4.902 & 0.000 & -0.628 & -0.269\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -1.333 & 0.106 & -12.560 & 0.000 & -1.546 & -1.130\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 1.675 & 0.165 & 10.157 & 0.000 & 1.355 & 2.002\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size & * & 1.766 & 0.203 & 8.701 & 0.000 & 1.373 & 2.170\\
+\cmidrule{1-10}\pagebreak[0]
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{Faster R-CNN}}\\
+\hspace{1em} & Vanishing & object & * & -0.768 & 0.113 & -6.813 & 0.000 & -0.991 & -0.549\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -6.002 & 0.408 & -14.728 & 0.000 & -6.829 & -5.230\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 2.062 & 0.256 & 8.052 & 0.000 & 1.572 & 2.577\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size &  & -1.190 & 0.905 & -1.315 & 0.188 & -3.059 & 0.485\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Mislabeling & object & * & -0.384 & 0.139 & -2.770 & 0.006 & -0.657 & -0.113\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -5.868 & 0.483 & -12.144 & 0.000 & -6.858 & -4.961\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size &  & 0.461 & 0.252 & 1.832 & 0.067 & -0.029 & 0.958\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size & * & 2.055 & 0.747 & 2.752 & 0.006 & 0.440 & 3.362\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Untargeted & object & * & -0.275 & 0.089 & -3.096 & 0.002 & -0.449 & -0.101\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -1.804 & 0.124 & -14.599 & 0.000 & -2.053 & -1.568\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 2.104 & 0.182 & 11.585 & 0.000 & 1.752 & 2.464\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size & * & 2.226 & 0.233 & 9.570 & 0.000 & 1.778 & 2.690\\
+\cmidrule{1-10}\pagebreak[0]
+\addlinespace[0.3em]
+\multicolumn{10}{l}{\textbf{Cascade R-CNN}}\\
+\hspace{1em} & Vanishing & object & * & -0.665 & 0.104 & -6.395 & 0.000 & -0.870 & -0.462\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -6.496 & 0.388 & -16.731 & 0.000 & -7.279 & -5.757\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 2.905 & 0.277 & 10.474 & 0.000 & 2.378 & 3.465\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size &  & -1.579 & 0.840 & -1.881 & 0.060 & -3.310 & -0.020\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Mislabeling & object & * & -0.282 & 0.117 & -2.402 & 0.016 & -0.513 & -0.052\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -6.317 & 0.438 & -14.410 & 0.000 & -7.210 & -5.489\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 0.886 & 0.220 & 4.018 & 0.000 & 0.459 & 1.325\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size &  & 1.310 & 0.746 & 1.757 & 0.079 & -0.265 & 2.666\\
+\cmidrule{2-10}\nopagebreak
+\hspace{1em} & Untargeted & object &  & -0.175 & 0.100 & -1.739 & 0.082 & -0.371 & 0.022\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance & * & -2.464 & 0.159 & -15.457 & 0.000 & -2.786 & -2.160\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & size & * & 0.913 & 0.161 & 5.677 & 0.000 & 0.598 & 1.229\\
+\cmidrule{3-10}\nopagebreak
+\hspace{1em} &  & distance * size & * & 2.093 & 0.216 & 9.686 & 0.000 & 1.670 & 2.519\\
+\bottomrule
+\end{longtable}
+\endgroup{}
